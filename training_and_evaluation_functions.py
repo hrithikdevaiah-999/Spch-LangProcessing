@@ -1,9 +1,11 @@
-import random
-import torch
-import pandas as pd
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import csv
+import shutil
+import os
 from datetime import datetime
+
+import torch
+
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 
 def index_of_instruction_word(text, n):
@@ -52,14 +54,7 @@ def make_prompt(title, ingredients, complete_instruction_steps, incomplete_instr
 
 
  
-def get_datasets(recipe_categories=["drinks", "bakery"]):
-    return []
 
-def split_datasets(datasets, test_ratio = 0.1):
-    return datasets, datasets
-
-def add_dangerous_data(test_datasets):
-    return test_datasets
 
 def train_model(model, n_epochs = 1):
     return model
@@ -129,3 +124,9 @@ def save_scores(recipe_train_index, scores):
         line = [recipe_train_index, datetime.now().strftime("%Y-%m-%d %H:%M:%S")] + scores
         writer.writerows([line])
 
+
+
+def backup_file(source_file, backup_folder):
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    backup_file = os.path.join(backup_folder, f'perplexities_{current_date}.txt')
+    shutil.copy(source_file, backup_file)
