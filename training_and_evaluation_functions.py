@@ -27,10 +27,9 @@ def separate_recipe_components(df, recipe_index, n_complete_steps=None, n_words_
     title = test_rec["title"]
     ingredients = test_rec["ingredients"]
     steps = convert_string_to_list(test_rec["directions"])
+    if n_complete_steps == None or len(steps) < n_complete_steps : return title, ingredients, steps, "", ""
+    
     complete_steps = steps[:n_complete_steps - 1]
-
-    if len(steps) < n_complete_steps or n_complete_steps == None: return title, ingredients, steps, "", ""
-
     true_step = steps[n_complete_steps]
     n_characters_before_autocomplete = index_of_instruction_word(true_step, n_words_before_autocomplete) # Not used for now
     incomplete_instruction_step = true_step[0:n_characters_before_autocomplete]
@@ -61,8 +60,8 @@ def train_model(model, n_epochs = 1):
 
 
 
-def calculate_perplexity(trained_model, model_name, original_prompt, rest_of_instruction_step):
-    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+def calculate_perplexity(trained_model, tokenizer, original_prompt, rest_of_instruction_step):
+
     
     prompt_id = tokenizer(original_prompt, return_tensors='pt').input_ids
     completion_id = tokenizer(rest_of_instruction_step, return_tensors='pt').input_ids
@@ -77,7 +76,7 @@ def calculate_perplexity(trained_model, model_name, original_prompt, rest_of_ins
     return perplexity.item()
 
 
-def perplexity_across_dataset(trained_model, test_df, n_words_before_autocomplete=3, verbose=True):
+def perplexity_across_dataset(trained_model, tokenizer, test_df, n_words_before_autocomplete=3, verbose=True):
     # This function 
     all_perplexity = []
     for i in range(len(test_df)):
@@ -89,7 +88,7 @@ def perplexity_across_dataset(trained_model, test_df, n_words_before_autocomplet
         
         complete_steps = []
         for j in range(len(steps)):
-            
+            print("substep: ", j)
             next_step = steps[j]
             n_characters_before_autocomplete = index_of_instruction_word(next_step, n_words_before_autocomplete)
             
@@ -100,21 +99,23 @@ def perplexity_across_dataset(trained_model, test_df, n_words_before_autocomplet
             rest_of_instruction_step = next_step[n_characters_before_autocomplete:]
             
             prompt = make_prompt(title, ingredients, complete_steps, incomplete_next_step)
-            perplexity = calculate_perplexity(trained_model, "idk", prompt, rest_of_instruction_step)
+            print(prompt)
+            
+            perplexity = calculate_perplexity(trained_model, tokenizer, prompt, rest_of_instruction_step)
             
             all_perplexity.append(perplexity)
             
-            complete_steps.append(steps[i])
+            complete_steps.append(steps[j])
     
     return sum(all_perplexity) / float(len(all_perplexity))
             
 
-def eval_perplexity(trained_model, test_data, bad_data = False):
-    
+def eval_perplexity(trained_model, tokenizer, test_data, bad_data = False):
+    trained_model.eval()
     if bad_data:
         return 0
     else:
-        return perplexity_across_dataset(trained_model, test_data)
+        return perplexity_across_dataset(trained_model, tokenizer, test_data)
 
 
 def save_scores(recipe_train_index, scores):

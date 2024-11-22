@@ -1,7 +1,1 @@
-recipe_train_dataset,datetime,all,drinks,bakery,bad
-not_real_0,2024-11-21 03:02:17,3,0,20,2
-not_real_1,2024-11-21 03:02:17,16,10,31,14
-not_real_2,2024-11-21 03:02:17,29,20,42,26
-not_real_3,2024-11-21 03:02:17,42,30,53,38
-untrained,2024-11-21 03:02:17
-untrained,2024-11-21 03:04:04
+recipe_train_dataset,datetime,main,drinks,bakery,bad
